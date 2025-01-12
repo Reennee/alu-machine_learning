@@ -27,7 +27,8 @@ class NST:
         content_feature: the content later output of the content image
 
     class constructor:
-        def __init__(self, style_image, content_image, alpha=1e4, beta=1)
+        def __init__(self, style_image, content_image, alpha=1e4, beta=1,
+                     var=10):
 
     static methods:
         def scale_image(image):
@@ -35,6 +36,8 @@ class NST:
                 and the largest side is 512 pixels
         def gram_matrix(input_layer):
             calculates gram matrices
+        def variational_cost(generated_image):
+            calculates the variational cost for the generated image
 
     public instance methods:
         def load_model(self):
@@ -59,7 +62,7 @@ class NST:
                     'block4_conv1', 'block5_conv1']
     content_layer = 'block5_conv2'
 
-    def __init__(self, style_image, content_image, alpha=1e4, beta=1):
+    def __init__(self, style_image, content_image, alpha=1e4, beta=1, var=10):
         """
         Class constructor for Neural Style Transfer class
 
@@ -95,6 +98,8 @@ class NST:
             raise TypeError("alpha must be a non-negative number")
         if (type(beta) is not float and type(beta) is not int) or beta < 0:
             raise TypeError("beta must be a non-negative number")
+        if (type(var) is not float and type(var) is not int) or var < 0:
+            raise TypeError("var must be a non-negative number")
 
         tf.enable_eager_execution()
 
@@ -102,6 +107,7 @@ class NST:
         self.content_image = self.scale_image(content_image)
         self.alpha = alpha
         self.beta = beta
+        self.var = var
         self.load_model()
         self.generate_features()
 
@@ -292,10 +298,11 @@ class NST:
                 contains the generated image
 
         returns:
-            (J, J_content, J_style) [tuple]:
+            (J, J_content, J_style, J_var) [tuple]:
                 J: total cost
                 J_content: content cost
                 J_style: style cost
+                J_var: variational cost
         """
         shape = self.content_image.shape
         if not isinstance(generated_image, (tf.Tensor, tf.Variable)) or \
@@ -339,6 +346,7 @@ class NST:
                     J_total: total cost for generated image
                     J_content: content cost
                     J_style: style cost
+                    J_var: variational cost
             lr [float]:
                 learning rate for gradient descent
             beta1 [float]:
@@ -378,3 +386,17 @@ class NST:
         generated_image = self.content_image
         cost = 0
         return generated_image, cost
+
+    @staticmethod
+    def variational_cost(generated_image):
+        """
+        Calculates the variational cost for the generated image
+
+        parameters:
+            generated_image [tf.Tensor of shape (1, nh, nw, 3)]:
+                contatins the generated image
+
+        returns:
+            the variational cost
+        """
+        return None
