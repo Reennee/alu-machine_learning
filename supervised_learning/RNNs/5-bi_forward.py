@@ -1,56 +1,65 @@
 #!/usr/bin/env python3
 """
-This module contains the BiRNN class.
+Defines the class BidirectionalCell that represents a bidirectional RNN cell
 """
+
 
 import numpy as np
 
 
 class BidirectionalCell:
     """
-    Represents a cell of a bidirectional RNN.
+    Represents a birectional RNN cell
+
+    class constructor:
+        def __init__(self, i, h, o)
+
+    public instance attributes:
+
+    public instance methods:
+        def forward(self, h_prev, c_prev, x_t):
+            performs forward propagation for one time step
     """
     def __init__(self, i, h, o):
         """
-        Constructor for the BidirectionalCell class.
+        Class constructor
 
-        Args:
-            i (int): Dimensionality of the data.
-            h (int): Dimensionality of the hidden states.
-            o (int): Dimensionality of the outputs.
+        parameters:
+            i: dimensionality of the data
+            h: dimensionality of the hidden state
+            o: dimensionality of the outputs
+
+        creates public instance attributes:
+
+        weights should be initialized using random normal distribution
+        weights will be used on the right side for matrix multiplication
+        biases should be initiliazed as zeros
         """
-        # Weights and biases for the forward direction
-        self.Whf = np.random.normal(size=(i + h, h))
         self.bhf = np.zeros((1, h))
-
-        # Weights and biases for the backward direction
-        self.Whb = np.random.normal(size=(i + h, h))
-        self.bhb = np.zeros((1, h))  # Bias for backward hidden state
-
-        # Weights and biases for the output
-        self.Wy = np.random.normal(size=(2 * h, o))
+        self.bhb = np.zeros((1, h))
         self.by = np.zeros((1, o))
+        self.Whf = np.random.normal(size=(h + i, h))
+        self.Whb = np.random.normal(size=(h + i, h))
+        self.Wy = np.random.normal(size=((2 * h), o))
 
     def forward(self, h_prev, x_t):
         """
-        Performs forward propagation for one time step in
-        the forward direction.
+        Performs forward propagation for one time step
 
-        Args:
-            h_prev (numpy.ndarray): Previous hidden state of shape (m, h).
-            x_t (numpy.ndarray): Data input for the current time
-            step of shape (m, i).
+        parameters:
+            h_prev [numpy.ndarray of shape (m, h)]:
+                contains previous hidden state
+                m: the batch size for the data
+                h: dimensionality of hidden state
+            x_t [numpy.ndarray of shape (m, i)]:
+                contains data input for the cell
+                m: the batch size for the data
+                i: dimensionality of the data
 
-        Returns:
-            h_next (numpy.ndarray): The next hidden state.
+        returns:
+            h_next: the next hidden state
         """
-        m, _ = x_t.shape  # Batch size
-        h = h_prev.shape[1]  # Hidden state dimension
-
-        # Concatenate the previous hidden state and current input
-        concat_input = np.concatenate((h_prev, x_t), axis=1)
-
-        # Compute the next hidden state using tanh activation
-        h_next = np.tanh(np.dot(concat_input, self.Whf) + self.bhf)
+        h_x = np.concatenate((h_prev, x_t), axis=1)
+        h_next = np.tanh(np.matmul(h_x, self.Whf) + self.bhf)
 
         return h_next

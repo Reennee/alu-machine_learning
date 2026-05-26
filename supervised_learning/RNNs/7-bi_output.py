@@ -1,114 +1,130 @@
 #!/usr/bin/env python3
 """
-This module contains the BiRNN class.
+Defines the class BidirectionalCell that represents a bidirectional RNN cell
 """
+
 
 import numpy as np
 
 
 class BidirectionalCell:
     """
-    This class represents a bidirectional cell of an RNN.
+    Represents a birectional RNN cell
+
+    class constructor:
+        def __init__(self, i, h, o)
+
+    public instance attributes:
+
+    public instance methods:
+        def forward(self, h_prev, c_prev, x_t):
+            performs forward propagation for one time step
+        def backward(self, h_next, x_t):
+            calculates the hidden state in backward direction for one time step
+        def output(self, H):
+            calculates all outputs for the RNN
     """
     def __init__(self, i, h, o):
         """
-        Constructor for the BidirectionalCell class.
+        Class constructor
 
-        Args:
-            i (int): Dimensionality of the data.
-            h (int): Dimensionality of the hidden states.
-            o (int): Dimensionality of the outputs.
+        parameters:
+            i: dimensionality of the data
+            h: dimensionality of the hidden state
+            o: dimensionality of the outputs
+
+        creates public instance attributes:
+
+        weights should be initialized using random normal distribution
+        weights will be used on the right side for matrix multiplication
+        biases should be initiliazed as zeros
         """
-        # Weights and biases for the forward direction
-        self.Whf = np.random.normal(size=(i + h, h))
-        self.bhf = np.zeros((1, h))  # Bias for forward hidden state
-
-        # Weights and biases for the backward direction
-        self.Whb = np.random.normal(size=(i + h, h))
-        self.bhb = np.zeros((1, h))  # Bias for backward hidden state
-
-        # Weights and biases for the output
-        self.Wy = np.random.normal(size=(2 * h, o))
-        self.by = np.zeros((1, o))  # Bias for the output
+        self.bhf = np.zeros((1, h))
+        self.bhb = np.zeros((1, h))
+        self.by = np.zeros((1, o))
+        self.Whf = np.random.normal(size=(h + i, h))
+        self.Whb = np.random.normal(size=(h + i, h))
+        self.Wy = np.random.normal(size=((2 * h), o))
 
     def forward(self, h_prev, x_t):
         """
-        Performs forward propagation for one time step in
-        the forward direction.
+        Performs forward propagation for one time step
 
-        Args:
-            h_prev (numpy.ndarray): Previous hidden state
-            of shape (m, h).
-            x_t (numpy.ndarray): Data input for the current
-            time step of shape (m, i).
+        parameters:
+            h_prev [numpy.ndarray of shape (m, h)]:
+                contains previous hidden state
+                m: the batch size for the data
+                h: dimensionality of hidden state
+            x_t [numpy.ndarray of shape (m, i)]:
+                contains data input for the cell
+                m: the batch size for the data
+                i: dimensionality of the data
 
-        Returns:
-            h_next (numpy.ndarray): The next hidden state.
+        returns:
+            h_next: the next hidden state
         """
-        # Concatenate the previous hidden state and current input
-        concat_input = np.concatenate((h_prev, x_t), axis=1)
-
-        # Compute the next hidden state using tanh activation
-        h_next = np.tanh(np.dot(concat_input, self.Whf) + self.bhf)
+        h_x = np.concatenate((h_prev, x_t), axis=1)
+        h_next = np.tanh(np.matmul(h_x, self.Whf) + self.bhf)
 
         return h_next
 
     def backward(self, h_next, x_t):
         """
-        Performs backward propagation for one time step in the
-        backward direction.
+        Calculates the hidden state in the backward direction for one time step
 
-        Args:
-            h_next (numpy.ndarray): Next hidden state of shape (m, h).
-            x_t (numpy.ndarray): Data input for the current time step
-            of shape (m, i).
+        parameters:
+            h_next [numpy.ndarray of shape (m, h)]:
+                contains the next hidden state
+                m: the batch size for the data
+                h: dimensionality of hidden state
+            x_t [numpy.ndarray of shape (m, i)]:
+                contains data input for the cell
+                m: the batch size for the data
+                i: dimensionality of the data
 
-        Returns:
-            h_prev (numpy.ndarray): The previous hidden state.
+        returns:
+            h_prev: the previous hidden state
         """
-        # Concatenate the next hidden state and current input
-        concat_input = np.concatenate((h_next, x_t), axis=1)
-
-        # Compute the previous hidden state using tanh activation
-        h_prev = np.tanh(np.dot(concat_input, self.Whb) + self.bhb)
+        h_x = np.concatenate((h_next, x_t), axis=1)
+        h_prev = np.tanh(np.matmul(h_x, self.Whb) + self.bhb)
 
         return h_prev
 
     def softmax(self, x):
         """
-        Applies softmax to a 2D numpy array.
+        Performs the softmax function
 
-        Args:
-            x (numpy.ndarray): Array to apply softmax to.
+        parameters:
+            x: the value to perform softmax on to generate output of cell
 
-        Returns:
-            numpy.ndarray: Softmax applied array.
+        return:
+            softmax of x
         """
-        e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
-        return e_x / np.sum(e_x, axis=-1, keepdims=True)
+        e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
+        softmax = e_x / e_x.sum(axis=1, keepdims=True)
+        return softmax
 
     def output(self, H):
         """
-        Calculates all outputs for the RNN.
+        Calculates all outputs for the RNN
 
-        Args:
-            H (numpy.ndarray): Concatenated hidden states
-            from both directions.
-                              Shape (t, m, 2 * h), where:
-                                t: number of time steps
-                                m: batch size
-                                h: hidden state dimensionality
+        parameters:
+            H [numpy.ndarray of shape (t, m, 2 * h)]:
+                contains the concatenated hidden states from both directions,
+                    excluding their initialized states
+                t: number of time steps
+                m: the batch size for the data
+                h: the dimensionality of the hidden states
 
-        Returns:
-            Y (numpy.ndarray): The outputs of the RNN.
-                               Shape (t, m, o), where o is the
-                               output dimensionality.
+        returns:
+            Y: the outputs
         """
+        t, m, h = H.shape
 
-        # Calculate the outputs Y
-        Y = np.dot(H, self.Wy) + self.by
+        Y = []
 
-        # Apply softmax to get output probabilities
-        Y = self.softmax(Y)
+        for step in range(t):
+            y = self.softmax(np.matmul(H[step], self.Wy) + self.by)
+            Y.append(y)
 
-        return Y
+        return np.array(Y)

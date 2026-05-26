@@ -1,36 +1,64 @@
 #!/usr/bin/env python3
-'''
-    Script that defines a class GRUCell
-    GRUCell that represents a gated recurrent unit
-'''
+"""
+Defines the class GRUCell that represents a gated recurrent unit
+"""
 
 
 import numpy as np
 
 
 class GRUCell:
-    '''
-        Class GRUCell that represents a gated recurrent unit
+    """
+    Represents a gated recurrent unit
+
+    class constructor:
+        def __init__(self, i, h, o)
+
+    public instance attributes:
+        Wz: update gate weights
+        bz: update gate biases
+        Wr: reset gate weights
+        br: reset gate biases
+        Wh: intermediate hidden state and input data weights
+        bh: intermediate hidden state and input data biases
+        Wy: output weights
+        by: output biases
+
+    public instance methods:
+        def forward(self, h_prev, x_t):
+            performs forward propagation for one time step
+    """
+    def __init__(self, i, h, o):
+        """
+        Class constructor
 
         parameters:
             i: dimensionality of the data
             h: dimensionality of the hidden state
             o: dimensionality of the outputs
-    '''
 
-    def __init__(self, i, h, o):
-        '''
-            Class constructor
-        '''
+        creates public instance attributes:
+            Wz: update gate weights
+            bz: update gate biases
+            Wr: reset gate weights
+            br: reset gate biases
+            Wh: intermediate hidden state and input data weights
+            bh: intermediate hidden state and input data biases
+            Wy: output weights
+            by: output biases
 
-        self.Wz = np.random.normal(size=(h + i, h))
-        self.Wr = np.random.normal(size=(h + i, h))
-        self.Wh = np.random.normal(size=(h + i, h))
-        self.Wy = np.random.normal(size=(h, o))
+        weights should be initialized using random normal distribution
+        weights will be used on the right side for matrix multiplication
+        biases should be initiliazed as zeros
+        """
         self.bz = np.zeros((1, h))
         self.br = np.zeros((1, h))
+        self.Wz = np.random.normal(size=(h + i, h))
+        self.Wr = np.random.normal(size=(h + i, h))
         self.bh = np.zeros((1, h))
         self.by = np.zeros((1, o))
+        self.Wh = np.random.normal(size=(h + i, h))
+        self.Wy = np.random.normal(size=(h, o))
 
     def softmax(self, x):
         """
@@ -60,18 +88,26 @@ class GRUCell:
         return sigmoid
 
     def forward(self, h_prev, x_t):
-        '''
-            Function that performs forward propagation
+        """
+        Performs forward propagation for one time step
 
-            parameters:
-                h_prev: contains the previous hidden state
-                x_t: contains the data input of the cell
+        parameters:
+            h_prev [numpy.ndarray of shape (m, h)]:
+                contains previous hidden state
+                m: the batch size for the data
+                h: dimensionality of hidden state
+            x_t [numpy.ndarray of shape (m, i)]:
+                contains data input for the cell
+                m: the batch size for the data
+                i: dimensionality of the data
 
-            return:
-                h_next: next hidden state
-                y: output of the cell
-        '''
+        output of the cell should use softmax activation function
 
+        returns:
+            h_next, y:
+            h_next: the next hidden state
+            y: the output of the cell
+        """
         concatenation1 = np.concatenate((h_prev, x_t), axis=1)
         z_gate = self.sigmoid(np.matmul(concatenation1, self.Wz) + self.bz)
         r_gate = self.sigmoid(np.matmul(concatenation1, self.Wr) + self.br)

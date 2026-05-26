@@ -66,16 +66,14 @@ def ngram_bleu(references, sentence, n):
     ngram_sentence_length = len(ngram_sentence)
     sentence_length = len(sentence)
 
-    sentence_dictionary = {
-        word: ngram_sentence.count(word) for word in ngram_sentence}
+    sentence_dictionary = {word: ngram_sentence.count(word) for
+                           word in ngram_sentence}
     references_dictionary = {}
 
     for ref in ngram_references:
         for gram in ref:
-            if references_dictionary.get(gram) \
-                is None or references_dictionary[
-                gram
-            ] < ref.count(gram):
+            if references_dictionary.get(gram) is None or \
+               references_dictionary[gram] < ref.count(gram):
                 references_dictionary[gram] = ref.count(gram)
 
     matchings = {word: 0 for word in ngram_sentence}
@@ -91,9 +89,8 @@ def ngram_bleu(references, sentence, n):
 
     precision = sum(matchings.values()) / ngram_sentence_length
 
-    index = np.argmin(
-        [abs(len(word) - sentence_length) for word in references]
-        )
+    index = np.argmin([abs(len(word) - sentence_length) for
+                       word in references])
     references_length = len(references[index])
 
     if sentence_length > references_length:

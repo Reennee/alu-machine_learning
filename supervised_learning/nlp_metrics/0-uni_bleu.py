@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
-'''
-    calculates the unigram BLEU score
-'''
+"""
+Defines function that calculates the unigram BLEU score for a sentence
+"""
 
 
 import numpy as np
 
 
 def uni_bleu(references, sentence):
-    '''
-        calculates the unigram BLEU score
-        for a sentence
-    '''
+    """
+    Calculates the unigram BLEU score for a sentence
+
+    parameters:
+        references [list]:
+            contains reference translations
+        sentence [list]:
+            contains the model proposed sentence
+
+    returns:
+        the unigram BLEU score
+    """
     sentence_length = len(sentence)
     references_length = []
     words = {}

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-'''
-    calculates the cumulative n-gram BLEU score for a sentence
-'''
+"""
+Defines function that calculates cumulative n-gram BLEU score for a sentence
+"""
 
 
 import numpy as np

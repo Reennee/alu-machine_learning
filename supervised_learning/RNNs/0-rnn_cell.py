@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-This module contains the RNNCell class.
+Defines the class RNNCell that represents a cell of a simple RNN
 """
+
 
 import numpy as np
 
@@ -9,58 +10,80 @@ import numpy as np
 class RNNCell:
     """
     Represents a cell of a simple RNN
+
+    class constructor:
+        def __init__(self, i, h, o)
+
+    public instance attributes:
+        Wh: concatenated hidden state and input data weights
+        bh: concatenated hidden state and input data biases
+        Wy: output weights
+        by: output biases
+
+    public instance methods:
+        def forward(self, h_prev, x_t):
+            performs forward propagation for one time step
     """
     def __init__(self, i, h, o):
         """
-        Initialize the RNNCell with random weights and zero biases.
+        Class constructor
 
-        Parameters:
-        i -- dimensionality of the data
-        h -- dimensionality of the hidden state
-        o -- dimensionality of the outputs
+        parameters:
+            i: dimensionality of the data
+            h: dimensionality of the hidden state
+            o: dimensionality of the outputs
+
+        creates public instance attributes:
+            Wh: concatenated hidden state and input data weights
+            bh: concatenated hidden state and input data biases
+            Wy: output weights
+            by: output biases
+
+        weights should be initialized using random normal distribution
+        weights will be used on the right side for matrix multiplication
+        biases should be initiliazed as zeros
         """
-        # Weights for the concatenated input and hidden state
-        self.Wh = np.random.normal(size=(i + h, h))
-        # Weights for the output
-        self.Wy = np.random.normal(size=(h, o))
-        # Biases for the hidden state and output
         self.bh = np.zeros((1, h))
         self.by = np.zeros((1, o))
-
-    def forward(self, h_prev, x_t):
-        """
-        Perform forward propagation for one time step.
-
-        Parameters:
-        h_prev -- numpy.ndarray of shape (m, h), previous hidden state
-        x_t -- numpy.ndarray of shape (m, i), input data for the cell
-
-        Returns:
-        h_next -- the next hidden state
-        y -- the output of the cell
-        """
-        # Concatenate h_prev and x_t along axis 1 (features axis)
-        concatenated = np.concatenate((h_prev, x_t), axis=1)
-
-        # Compute the next hidden state with tanh activation
-        h_next = np.tanh(np.dot(concatenated, self.Wh) + self.bh)
-
-        # Compute the output of the cell
-        y_linear = np.dot(h_next, self.Wy) + self.by
-        y = self.softmax(y_linear)
-
-        return h_next, y
+        self.Wh = np.random.normal(size=(h + i, h))
+        self.Wy = np.random.normal(size=(h, o))
 
     def softmax(self, x):
         """
-        Compute the softmax of the input array.
+        Performs the softmax function
 
-        Parameters:
-        x -- numpy.ndarray, input to softmax
+        parameters:
+            x: the value to perform softmax on to generate output of cell
 
-        Returns:
-        Softmax output
+        return:
+            softmax of x
         """
-        # Stability improvement
         e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
-        return e_x / e_x.sum(axis=1, keepdims=True)
+        softmax = e_x / e_x.sum(axis=1, keepdims=True)
+        return softmax
+
+    def forward(self, h_prev, x_t):
+        """
+        Performs forward propagation for one time step
+
+        parameters:
+            h_prev [numpy.ndarray of shape (m, h)]:
+                contains previous hidden state
+                m: the batch size for the data
+                h: dimensionality of hidden state
+            x_t [numpy.ndarray of shape (m, i)]:
+                contains data input for the cell
+                m: the batch size for the data
+                i: dimensionality of the data
+
+        output of the cell should use softmax activation function
+
+        returns:
+            h_next, y:
+            h_next: the next hidden state
+            y: the output of the cell
+        """
+        concatenation = np.concatenate((h_prev, x_t), axis=1)
+        h_next = np.tanh(np.matmul(concatenation, self.Wh) + self.bh)
+        y = self.softmax(np.matmul(h_next, self.Wy) + self.by)
+        return h_next, y
